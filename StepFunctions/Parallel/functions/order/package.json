@@ -1,0 +1,10 @@
+{
+  "name": "order",
+  "version": "1.0.0",
+  "description": "Mock order for NodeJS",
+  "main": "app.js",
+  "repository": "TODO",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {}
+}

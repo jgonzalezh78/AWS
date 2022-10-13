@@ -1,0 +1,111 @@
+{
+  "Comment": "state machine for checkout process",
+  "StartAt": "Parallel",
+  "States": {
+    "Parallel": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "fetch customer",
+          "States": {
+            "fetch customer": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "Payload.$": "$.checkout_request",
+                "FunctionName": "${CustomerFunctionArn}"
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Map",
+          "States": {
+            "Map": {
+              "Type": "Map",
+              "ItemsPath": "$.checkout_request.cart_items",
+              "Iterator": {
+                "StartAt": "fetch price",
+                "States": {
+                  "fetch price": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "OutputPath": "$.Payload",
+                    "Parameters": {
+                      "Payload.$": "$",
+                      "FunctionName": "${ItemFunctionArn}"
+                    },
+                    "End": true
+                  }
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "Pass"
+    },
+    "Pass": {
+      "Type": "Pass",
+      "Parameters": {
+        "customer.$": "$.[0]",
+        "items.$": "$.[1]"
+      },
+      "Next": "Process Payment"
+    },
+    "Process Payment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${PaymentFunctionArn}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Choice"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.status",
+          "NumericEquals": 1,
+          "Next": "Create Order"
+        },
+        {
+          "Variable": "$.status",
+          "NumericEquals": 0,
+          "Next": "End"
+        }
+      ]
+    },
+    "Create Order": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${OrderFunctionArn}"
+      },
+      "End": true
+    },
+    "End": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}

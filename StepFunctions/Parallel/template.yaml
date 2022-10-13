@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Parallel
+
+  Sample SAM Template for Parallel
+
+Globals:
+  Function:
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  ParallelExampleStateMachine:
+    Type: AWS::Serverless::StateMachine 
+    Properties:
+      DefinitionUri: statemachine/parallelexample.json
+      DefinitionSubstitutions:
+        CustomerFunctionArn: !GetAtt CustomerFunction.Arn
+        ItemFunctionArn: !GetAtt ItemFunction.Arn
+        OrderFunctionArn: !GetAtt OrderFunction.Arn
+        PaymentFunctionArn: !GetAtt PaymentFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CustomerFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ItemFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref OrderFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PaymentFunction
+
+  CustomerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/customer/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  ItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/item/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  OrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/order/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  PaymentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/payment/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+Outputs:
+  ParallelExampleStateMachineArn:
+    Description: "Stock Trading state machine ARN"
+    Value: !Ref ParallelExampleStateMachine
+  ParallelExampleStateMachineRole:
+    Description: "IAM Role created for parallel example state machine based on the specified SAM Policy Templates"
+    Value: !GetAtt ParallelExampleStateMachineRole.Arn
