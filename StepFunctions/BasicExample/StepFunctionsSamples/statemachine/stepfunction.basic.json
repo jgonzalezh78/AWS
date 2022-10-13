@@ -1,0 +1,17 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "fetch customer",
+  "States": {
+    "fetch customer": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters":{
+        "Payload.$":"$",
+        "FunctionName": "${CustomerbasiclambdaArn}"
+      },
+      "End": true,
+      "TimeoutSeconds": 30
+    }
+  }
+}

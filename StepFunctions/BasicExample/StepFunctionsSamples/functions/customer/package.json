@@ -1,0 +1,10 @@
+{
+  "name": "customerbasiclambda",
+  "version": "1.0.0",
+  "description": "Mock customer for NodeJS",
+  "main": "app.js",
+  "repository": "TODO",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {}
+}

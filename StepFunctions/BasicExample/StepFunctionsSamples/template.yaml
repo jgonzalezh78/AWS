@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  StepFunctionsBasics
+
+  Sample SAM Template for StepFunctionsBasic
+
+Globals:
+  Function:
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  CustomerBasicStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/stepfunction.basic.json
+      DefinitionSubstitutions:
+         CustomerbasiclambdaArn: !GetAtt Customerbasiclambda.Arn
+      Policies: 
+         - LambdaInvokePolicy:
+             FunctionName: !Ref Customerbasiclambda
+
+  Customerbasiclambda:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: functions/customer/
+      Handler: app.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+
+Outputs:
+  CustomerBasicStateMachineArn:
+    Description: "Customer state machine ARN"
+    Value: !Ref CustomerBasicStateMachine
+  CustomerBasicStateMachineRole:
+    Description: "IAM Role created for Customer state machine based on the specified SAM Policy Templates"
+    Value: !GetAtt CustomerBasicStateMachineRole.Arn
